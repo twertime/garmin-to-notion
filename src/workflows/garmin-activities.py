@@ -32,52 +32,54 @@ ACTIVITY_ICONS = {
     # Add more mappings as needed
 }
 
+NOTION_ACTIVITY_TYPES = {
+    "Breathwork", "Relaxation", "Cardio", "Cycling", "Hiking",
+    "Rowing", "Running", "Strength", "Stretching", "Swimming",
+    "Walking", "Yoga/Pilates", "Other"
+}
 
 def get_all_activities(garmin_client: GarminClient, limit: int = 1000) -> list[dict]:
     return garmin_client.get_activities(0, limit)
 
 
 def format_activity_type(activity_type: str, activity_name: str = "") -> tuple[str, str]:
-    # First format the activity type as before
     formatted_type = activity_type.replace('_', ' ').title() if activity_type else "Unknown"
 
-    # Initialize subtype as the same as the main type
     activity_subtype = formatted_type
     activity_type = formatted_type
 
-    # Map of specific subtypes to their main types
     activity_mapping = {
         "Barre": "Strength",
         "Indoor Cardio": "Cardio",
         "Indoor Cycling": "Cycling",
         "Indoor Rowing": "Rowing",
         "Meditation": "Breathwork",
+        "Open Water Swimming": "Swimming",
         "Speed Walking": "Walking",
         "Strength Training": "Strength",
         "Treadmill Running": "Running"
     }
 
-    # Special replacement for Rowing V2
     if formatted_type == "Rowing V2":
         activity_type = "Rowing"
 
-    # Special case for Yoga and Pilates
     elif formatted_type in ["Yoga", "Pilates"]:
         activity_type = "Yoga/Pilates"
         activity_subtype = formatted_type
 
-    # If the formatted type is in our mapping, update both main type and subtype
     if formatted_type in activity_mapping:
         activity_type = activity_mapping[formatted_type]
         activity_subtype = formatted_type
 
-    # Special cases for activity names
     if activity_name and "meditation" in activity_name.lower():
         return "Breathwork", "Meditation"
     if activity_name and "barre" in activity_name.lower():
         return "Strength", "Barre"
     if activity_name and "stretch" in activity_name.lower():
         return "Stretching", "Stretching"
+
+    if activity_type not in NOTION_ACTIVITY_TYPES:
+        activity_type = "Other"
 
     return activity_type, activity_subtype
 
